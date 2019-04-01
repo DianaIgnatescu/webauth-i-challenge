@@ -35,6 +35,16 @@ server.post('/api/register', (req, res) => {
   }
 });
 
+server.get('/api/users', (req, res) => {
+  db('users')
+    .then(users => {
+      res.status(200).json(users)
+    })
+    .catch((error) => {
+      res.status(500).json({ errorMessage: 'The users could not be retrieved.' })
+    });
+});
+
 
 const port = 4000;
 server.listen(port, () => console.log(`Listening on http://localhost:${port}!`));
