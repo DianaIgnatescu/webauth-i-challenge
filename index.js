@@ -2,14 +2,13 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const session = require('express-session');
+const SessionStore = require('connect-session-knex')(session);
 const bcrypt = require('bcryptjs');
 const knex = require('knex');
 const knexConfig = require('./knexfile').development;
 
 const db = knex(knexConfig);
 
-
-const session = require('express-session');
 const server = express();
 
 const sessionConfig = {
@@ -22,6 +21,13 @@ const sessionConfig = {
   httpOnly: true, // user can't access the cookie from js using document.cookie
   resave: false,
   saveUninitialized: false, // GDPR laws against setting cookies automatically
+  store: new SessionStore({
+    knex: db,
+    tablename: 'active_sessions',
+    sidfieldname: 'sid',
+    createTable: true,
+    clearInterval: 1000 * 60 * 60
+  })
 };
 
 server.use(helmet());
@@ -52,16 +58,6 @@ server.post('/api/register', (req, res) => {
         res.status(500).json({ errorMessage: 'The user could not be created.' });
       })
   }
-});
-
-server.get('/api/users', (req, res) => {
-  db('users')
-    .then(users => {
-      res.status(200).json(users)
-    })
-    .catch((error) => {
-      res.status(500).json({ errorMessage: 'The users could not be retrieved.' })
-    });
 });
 
 server.post('/api/login', (req, res) => {
