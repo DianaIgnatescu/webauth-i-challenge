@@ -1,6 +1,7 @@
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
+const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const knex = require('knex');
 const knexConfig = require('./knexfile').development;
@@ -84,6 +85,24 @@ server.post('/api/login', (req, res) => {
         res.status(500).json({ errorMessage: 'Login unsuccessful' })
       });
   }
+});
+
+const restricted = (req, res, next) => {
+  if (req.session && req.session.user) {
+    next()
+  } else {
+    res.status(401).json({ message: 'You shall not pass!' });
+  }
+};
+
+server.get('/api/users', restricted, (req, res) => {
+  db('users')
+      .then(users => {
+        res.status(200).json(users)
+      })
+      .catch((error) => {
+        res.status(500).json({ errorMessage: 'The users could not be retrieved.' })
+      });
 });
 
 const port = 4000;
