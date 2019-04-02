@@ -101,5 +101,19 @@ server.get('/api/users', restricted, (req, res) => {
       });
 });
 
+server.get('/api/logout', (req, res) => {
+  if (req.session) {
+    req.session.destroy(error => {
+      if (!error) {
+        res.status(200).json({ message: 'Logout was successful!'})
+      } else {
+        res.json({ errorMessage: 'Logout failed.'})
+      }
+    })
+  } else {
+    res.end();
+  }
+});
+
 const port = 4000;
 server.listen(port, () => console.log(`Listening on http://localhost:${port}!`));
